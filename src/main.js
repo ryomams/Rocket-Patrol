@@ -7,6 +7,7 @@ let config = {
     height: 480,
     parent: "gamegohere",
     scene: [Menu, Play],
+    pixelArt: true,
 }
 
 // let there be light!
