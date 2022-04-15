@@ -9,6 +9,10 @@ class Play extends Phaser.Scene {
         this.load.image('starfield', './assets/spacefield.png');
         // load spritesheet for explosion
         this.load.spritesheet('explosion', './assets/explosion.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
+        // load audio
+        this.load.audio('sfx_select', './assets/blip_select12.wav');
+        this.load.audio('sfx_explosion', './assets/explosion38.wav');
+        this.load.audio('sfx_rocket', './assets/rocket_shot.wav');
     }
     create() {
         this.add.text(20,20, "Rocket Patrol Playtime");
@@ -40,13 +44,50 @@ class Play extends Phaser.Scene {
             frameRate: 30
         });
         //init score
+        this.p1Score = 0;
+        // display score
+        let scoreConfig = {
+          fontFamily: 'Courier',
+          fontSize: '28px',
+          backgroundColor: '#F3B141',
+          color: '#843605',
+          align: 'right',
+          padding: {
+            top: 5,
+            bottom: 5,
+          },
+          fixedWidth: 100
+        }
+        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig);
+        //init GAME OVER flag
+        this.gameOver = false;
+        // 60-second play clock
+        scoreConfig.fixedWidth = 0;
+        this.clock = this.time.delayedCall(60000, () => {
+            this.add.text(game.config.width/2, game.config.height/2, 'FAILURE', scoreConfig).setOrigin(0.5);
+            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to FAIL AGAIN', scoreConfig).setOrigin(0.5);
+            this.add.text(game.config.width/2, game.config.height/2 + 128, 'sample text here', scoreConfig).setOrigin(0.5);
+            this.gameOver = true;
+        }, null, this);
+
     }
     update() {
+        // check key input for restart
+        if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyR)) {
+            this.scene.restart();
+        }
+        if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyLEFT)) {
+            this.scene.start("menuScene");
+        }
+        //move the starfield
         this.starfield.tilePositionX -= 4;
-        this.p1Rocket.update();
-        this.ship01.update();               // update spaceships (x3)
-        this.ship02.update();
-        this.ship03.update();
+        //if the game isnt over, update all the shit
+        if (!this.gameOver) {               
+            this.p1Rocket.update();         // update rocket sprite
+            this.ship01.update();           // update spaceships (x3)
+            this.ship02.update();
+            this.ship03.update();
+        } 
         // check collisions
         if(this.checkCollision(this.p1Rocket, this.ship03)) {
           console.log('kaboom ship 03');
@@ -85,6 +126,10 @@ class Play extends Phaser.Scene {
             ship.reset();                         // reset ship position
             ship.alpha = 1;                       // make ship visible again
             boom.destroy();                       // remove explosion sprite
-        });     
+        });
+        this.sound.play('sfx_explosion');
+        // score add and repaint
+        this.p1Score += ship.points;
+        this.scoreLeft.text = this.p1Score;     
     }
 }
