@@ -1,6 +1,6 @@
 console.log("peepee")
 
-//config is config is ocnifingi
+//configurationinator
 let config = {
     type: Phaser.CANVAS,
     width: 640,
